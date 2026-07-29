@@ -122,6 +122,14 @@ h2 { margin: 8px 0 22px; font-size: clamp(36px, 8vw, 64px); font-style: italic; 
 .sound-btn { right: max(74px, calc(env(safe-area-inset-right) + 52px)); font-size: 18px; }
 .sound-btn.muted { color: #536274; text-decoration: line-through; }
 .mobile-controls { display: none; }
+.wechat-share-guide { position: absolute; z-index: 30; inset: 0; display: none; align-items: flex-start; justify-content: center; padding: max(100px, calc(env(safe-area-inset-top) + 80px)) 24px 24px; background: rgba(1,6,14,.88); backdrop-filter: blur(5px); }
+.wechat-share-guide.show { display: flex; }
+.share-arrow { position: absolute; top: max(8px, env(safe-area-inset-top)); right: 22px; color: var(--cyan); font-size: 78px; line-height: 1; transform: rotate(-34deg); text-shadow: 0 0 16px var(--cyan); }
+.share-guide-card { width: min(330px,100%); padding: 26px 22px; border: 1px solid #39627c; background: rgba(5,20,37,.95); text-align: center; box-shadow: 0 0 35px rgba(30,150,210,.18); }
+.share-guide-card strong { color: #eafcff; font-size: 20px; letter-spacing: .08em; }
+.share-guide-card p { color: #91a9bc; font-size: 13px; line-height: 1.9; }
+.share-guide-card b { color: var(--cyan); font-size: 18px; }
+.share-guide-card button { margin-top: 5px; padding: 9px 28px; border: 1px solid var(--cyan); background: rgba(28,130,170,.2); color: var(--cyan); cursor: pointer; }
 
 @media (max-width: 700px), (pointer: coarse) {
   .hud { grid-template-columns: 1fr 1fr; gap: 12px; inset: max(12px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) auto max(22px, env(safe-area-inset-left)); }

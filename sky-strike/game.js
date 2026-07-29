@@ -12,7 +12,8 @@
     pauseLabel: document.querySelector('#pauseLabel'), joystick: document.querySelector('#joystick'),
     bombBtn: document.querySelector('#bombBtn'), shareBtn: document.querySelector('#shareBtn'),
     copyBtn: document.querySelector('#copyBtn'), shareStatus: document.querySelector('#shareStatus'),
-    changeLevelBtn: document.querySelector('#changeLevelBtn'), finalLevel: document.querySelector('#finalLevel')
+    changeLevelBtn: document.querySelector('#changeLevelBtn'), finalLevel: document.querySelector('#finalLevel'),
+    wechatGuide: document.querySelector('#wechatShareGuide'), closeShareGuide: document.querySelector('#closeShareGuide')
   };
 
   let w = 0, h = 0, dpr = 1, playing = false, paused = false, last = 0;
@@ -35,15 +36,31 @@
   const hit = (a, b) => Math.hypot(a.x - b.x, a.y - b.y) < a.r + b.r;
 
   function initAudio() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (!audioCtx) {
+      const AudioEngine = window.AudioContext || window.webkitAudioContext;
+      if (!AudioEngine) return null;
+      audioCtx = new AudioEngine();
+    }
+    return audioCtx;
   }
-  function sound(type) {
-    if (muted || !audioCtx) return;
+  function emitSound(type) {
+    if (muted || !audioCtx || audioCtx.state !== 'running') return;
     const now=audioCtx.currentTime, osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
     const tones={shoot:[680,210,.035,'square'],hit:[130,45,.09,'sawtooth'],boom:[90,25,.22,'sawtooth'],power:[440,920,.18,'sine'],start:[260,640,.28,'triangle'],gameover:[240,70,.5,'sawtooth'],bomb:[110,520,.45,'sawtooth']};
     const t=tones[type]||tones.hit; osc.type=t[3]; osc.frequency.setValueAtTime(t[0],now); osc.frequency.exponentialRampToValueAtTime(t[1],now+t[2]); gain.gain.setValueAtTime(type==='shoot'?.018:.07,now); gain.gain.exponentialRampToValueAtTime(.001,now+t[2]); osc.start(now); osc.stop(now+t[2]);
+  }
+  function unlockAudio() {
+    const engine=initAudio();
+    if (!engine || engine.state === 'running') return Promise.resolve();
+    return engine.resume().catch(()=>{});
+  }
+  function sound(type) {
+    if (muted) return;
+    const engine=initAudio();
+    if (!engine) return;
+    if (engine.state === 'running') emitSound(type);
+    else engine.resume().then(()=>emitSound(type)).catch(()=>{});
   }
 
   function resize() {
@@ -63,7 +80,9 @@
   }
 
   function startGame() {
-    initAudio(); sound('start');
+    unlockAudio().then(()=>sound('start'));
+    document.title = '星海突击';
+    ui.wechatGuide.classList.remove('show');
     reset(); playing = true; paused = false; last = performance.now();
     ui.start.classList.remove('show'); ui.over.classList.remove('show'); ui.pauseBtn.style.display = 'block'; ui.soundBtn.style.display = 'block';
     requestAnimationFrame(loop);
@@ -266,9 +285,9 @@
   };
   document.addEventListener('touchend', finishTouch, { passive: true, capture: true });
   document.addEventListener('touchcancel', finishTouch, { passive: true, capture: true });
-  document.querySelectorAll('.difficulty button').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.difficulty button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedLevel=btn.dataset.level;initAudio();sound('power');}));
+  document.querySelectorAll('.difficulty button').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.difficulty button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedLevel=btn.dataset.level;unlockAudio().then(()=>sound('power'));}));
   ui.soundBtn.classList.toggle('muted',muted);
-  ui.soundBtn.addEventListener('click',()=>{initAudio();muted=!muted;localStorage.setItem('starStrikeMuted',muted?'1':'0');ui.soundBtn.classList.toggle('muted',muted);ui.soundBtn.setAttribute('aria-label',muted?'开启声音':'关闭声音');if(!muted)sound('power');});
+  ui.soundBtn.addEventListener('click',()=>{muted=!muted;localStorage.setItem('starStrikeMuted',muted?'1':'0');ui.soundBtn.classList.toggle('muted',muted);ui.soundBtn.setAttribute('aria-label',muted?'开启声音':'关闭声音');if(!muted)unlockAudio().then(()=>sound('power'));});
   const shareText=()=>`我在《星海突击》的${levels[selectedLevel].name}难度获得了 ${score.toLocaleString()} 分！你能打破我的纪录吗？`;
   async function copyResult(){
     try {
@@ -280,10 +299,33 @@
       ui.shareStatus.textContent='战绩已复制到剪贴板';
     } catch { ui.shareStatus.textContent='复制失败，请手动分享截图'; }
   }
-  ui.shareBtn.addEventListener('click',async()=>{if(navigator.share){try{await navigator.share({title:'星海突击战绩',text:shareText()});ui.shareStatus.textContent='分享成功';}catch(e){if(e.name!=='AbortError')copyResult();}}else copyResult();});
+  const isWechat = /MicroMessenger/i.test(navigator.userAgent);
+  ui.shareBtn.addEventListener('click',async()=>{
+    if (isWechat) {
+      document.title=shareText();
+      ui.wechatGuide.classList.add('show');
+      return;
+    }
+    if(navigator.share){
+      try{await navigator.share({title:'星海突击战绩',text:shareText(),url:location.href});ui.shareStatus.textContent='分享成功';}
+      catch(e){if(e.name!=='AbortError')ui.shareStatus.textContent='分享失败，请使用复制战绩';}
+    } else ui.shareStatus.textContent='当前浏览器不支持直接分享，请使用复制战绩';
+  });
+  const closeWechatGuide=()=>ui.wechatGuide.classList.remove('show');
+  ui.closeShareGuide.addEventListener('click',closeWechatGuide);
+  ui.wechatGuide.addEventListener('click',e=>{if(e.target===ui.wechatGuide)closeWechatGuide();});
   ui.copyBtn.addEventListener('click',copyResult);
   ui.changeLevelBtn.addEventListener('click',()=>{ui.over.classList.remove('show');ui.start.classList.add('show');});
   ui.startBtn.addEventListener('click',startGame);ui.restartBtn.addEventListener('click',startGame);ui.pauseBtn.addEventListener('click',togglePause);ui.pauseLabel.addEventListener('click',togglePause);ui.bombBtn.addEventListener('pointerdown',e=>{e.preventDefault();useBomb();});
+
+  // iOS 微信需要在真实触摸手势或 WeixinJSBridge 回调内恢复音频上下文。
+  const unlockOnGesture=()=>unlockAudio();
+  document.addEventListener('touchstart',unlockOnGesture,{passive:true,capture:true});
+  document.addEventListener('pointerdown',unlockOnGesture,{passive:true,capture:true});
+  document.addEventListener('WeixinJSBridgeReady',()=>{
+    if (window.WeixinJSBridge) window.WeixinJSBridge.invoke('getNetworkType',{},()=>unlockAudio());
+    else unlockAudio();
+  },false);
 
   resize(); reset(); render();
 })();
