@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#050b19">
+  <title>星海突击</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="game-shell">
+    <canvas id="game" aria-label="星海突击游戏画面"></canvas>
+
+    <header class="hud" aria-live="polite">
+      <div class="brand"><span>STAR</span> STRIKE</div>
+      <div class="stats">
+        <div><small>得分</small><strong id="score">000000</strong></div>
+        <div><small>最佳</small><strong id="best">000000</strong></div>
+      </div>
+      <div class="life-wrap">
+        <small>装甲</small>
+        <div class="life-bar"><i id="lifeBar"></i></div>
+      </div>
+    </header>
+
+    <section id="startScreen" class="panel show">
+      <div class="panel-card">
+        <p class="eyebrow">— 银河防线告急 —</p>
+        <h1>星海<br><span>突击</span></h1>
+        <p class="intro">穿越陨石雨，击退敌方舰队。<br>火力全开，坚持到最后。</p>
+        <div class="difficulty" aria-label="选择游戏难度">
+          <button data-level="easy">新兵<small>轻松巡航</small></button>
+          <button class="active" data-level="normal">精英<small>标准战斗</small></button>
+          <button data-level="hard">王牌<small>极限火力</small></button>
+        </div>
+        <button id="startBtn" class="primary-btn">开始作战 <b>→</b></button>
+        <div class="tips">
+          <span>电脑：WASD / 方向键 / 鼠标</span>
+          <span>手机：拖动战机 · 自动开火</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameOverScreen" class="panel">
+      <div class="panel-card compact">
+        <p class="eyebrow">— 战斗结束 —</p>
+        <h2>任务总结</h2>
+        <div class="final-score"><small>本次得分</small><strong id="finalScore">0</strong></div>
+        <p id="finalLevel" class="final-level">精英难度</p>
+        <p id="recordText" class="record-text">继续磨炼，王牌飞行员！</p>
+        <button id="restartBtn" class="primary-btn">再次出击 <b>↻</b></button>
+        <button id="changeLevelBtn" class="change-level-btn">更换难度</button>
+        <div class="share-actions">
+          <button id="shareBtn">↗ 分享战绩</button>
+          <button id="copyBtn">▣ 复制战绩</button>
+        </div>
+        <p id="shareStatus" class="share-status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <div class="mobile-controls" aria-hidden="true">
+      <div id="joystick" class="joystick"><i></i></div>
+      <button id="bombBtn" class="bomb-btn"><span>✦</span><small>脉冲</small></button>
+    </div>
+
+    <button id="pauseBtn" class="icon-btn" aria-label="暂停游戏">Ⅱ</button>
+    <button id="soundBtn" class="icon-btn sound-btn" aria-label="关闭声音">♪</button>
+    <div id="pauseLabel" class="pause-label">已暂停<br><small>点击继续</small></div>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>
