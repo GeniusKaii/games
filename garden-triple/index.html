@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#fff5e8">
+  <title>花园叠叠乐</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="game">
+    <div class="petal p1">✿</div><div class="petal p2">✦</div><div class="petal p3">❀</div>
+    <header>
+      <button id="homeBtn" class="round-btn" aria-label="返回首页">⌂</button>
+      <div class="title"><small>TRIPLE GARDEN</small><h1>花园叠叠乐</h1></div>
+      <button id="soundBtn" class="round-btn" aria-label="声音开关">♪</button>
+    </header>
+
+    <section class="progress-wrap">
+      <span id="levelText">第 1 关</span>
+      <div class="progress"><i id="progressBar"></i></div>
+      <span id="leftText">剩余 51</span>
+    </section>
+
+    <section id="board" class="board" aria-label="叠牌区域"></section>
+
+    <section class="tray-area">
+      <div id="tray" class="tray" aria-label="收集槽"></div>
+      <p>凑齐三个相同图案即可消除</p>
+    </section>
+
+    <nav class="tools">
+      <button id="undoBtn"><span>↶</span><b>撤回</b><small id="undoCount">3</small></button>
+      <button id="shuffleBtn"><span>⤨</span><b>洗牌</b><small id="shuffleCount">2</small></button>
+      <button id="removeBtn"><span>✣</span><b>移出</b><small id="removeCount">1</small></button>
+    </nav>
+
+    <section id="welcome" class="modal show">
+      <div class="card welcome-card">
+        <div class="mascot">🌷</div>
+        <p class="overline">A LITTLE GIFT FOR YOU</p>
+        <h2>花园叠叠乐</h2>
+        <p>点选没有被压住的卡片<br>三个相同图案会自动消除</p>
+        <button id="startBtn" class="main-btn">逛逛花园</button>
+      </div>
+    </section>
+
+    <section id="result" class="modal">
+      <div class="card result-card">
+        <div id="resultIcon" class="result-icon">🎉</div>
+        <p id="resultLabel" class="overline">GARDEN CLEARED</p>
+        <h2 id="resultTitle">花园清空啦！</h2>
+        <p id="resultDesc">眼力和运气都很棒</p>
+        <button id="nextBtn" class="main-btn">下一座花园</button>
+        <button id="retryBtn" class="text-btn">重新挑战</button>
+      </div>
+    </section>
+
+    <div id="toast" class="toast"></div>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>
