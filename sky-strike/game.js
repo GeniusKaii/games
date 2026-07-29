@@ -214,6 +214,15 @@
   ui.joystick.addEventListener('pointermove',joyMove);
   const joyEnd=e=>{if(e.pointerId===joyId){joyId=null;input.x=input.y=0;ui.joystick.querySelector('i').style.transform='';}};
   ui.joystick.addEventListener('pointerup',joyEnd);ui.joystick.addEventListener('pointercancel',joyEnd);
+  let joyTouchId = null;
+  const joyTouchMove = touch => {
+    const r=ui.joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=touch.clientX-cx,dy=touch.clientY-cy,len=Math.hypot(dx,dy),max=34,s=Math.min(1,max/(len||1));
+    input.x=dx/max*s;input.y=dy/max*s;ui.joystick.querySelector('i').style.transform=`translate(${dx*s}px,${dy*s}px)`;
+  };
+  ui.joystick.addEventListener('touchstart',e=>{const t=e.changedTouches[0];joyTouchId=t.identifier;joyTouchMove(t);e.preventDefault();},{passive:false});
+  ui.joystick.addEventListener('touchmove',e=>{const t=Array.from(e.changedTouches).find(item=>item.identifier===joyTouchId);if(t){joyTouchMove(t);e.preventDefault();}},{passive:false});
+  const joyTouchEnd=e=>{if(Array.from(e.changedTouches).some(item=>item.identifier===joyTouchId)){joyTouchId=null;input.x=input.y=0;ui.joystick.querySelector('i').style.transform='';}};
+  ui.joystick.addEventListener('touchend',joyTouchEnd);ui.joystick.addEventListener('touchcancel',joyTouchEnd);
   let dragId = null;
   const dragShip = e => {
     if (e.pointerId !== dragId || !playing || paused) return;
@@ -228,6 +237,35 @@
   canvas.addEventListener('pointermove', dragShip);
   canvas.addEventListener('pointerup', e=>{ if(e.pointerId===dragId) dragId=null; });
   canvas.addEventListener('pointercancel', e=>{ if(e.pointerId===dragId) dragId=null; });
+
+  // 微信内置浏览器的 Pointer Events 首次触摸偶尔不会派发到 canvas。
+  // 直接监听原生触摸事件并在捕获阶段接管游戏区域，确保第一下滑动即可操控。
+  let touchId = null;
+  const isControl = target => target.closest && target.closest('button, .joystick, .panel');
+  const moveByTouch = touch => {
+    player.x = clamp(touch.clientX, 22, w - 22);
+    player.y = clamp(touch.clientY - 42, 52, h - 24);
+  };
+  document.addEventListener('touchstart', e => {
+    if (!playing || paused || isControl(e.target) || touchId !== null) return;
+    const touch = e.changedTouches[0];
+    touchId = touch.identifier;
+    moveByTouch(touch);
+    e.preventDefault();
+  }, { passive: false, capture: true });
+  document.addEventListener('touchmove', e => {
+    if (!playing || paused || touchId === null) return;
+    const touch = Array.from(e.changedTouches).find(item => item.identifier === touchId);
+    if (!touch) return;
+    moveByTouch(touch);
+    e.preventDefault();
+  }, { passive: false, capture: true });
+  const finishTouch = e => {
+    if (touchId === null) return;
+    if (Array.from(e.changedTouches).some(item => item.identifier === touchId)) touchId = null;
+  };
+  document.addEventListener('touchend', finishTouch, { passive: true, capture: true });
+  document.addEventListener('touchcancel', finishTouch, { passive: true, capture: true });
   document.querySelectorAll('.difficulty button').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.difficulty button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedLevel=btn.dataset.level;initAudio();sound('power');}));
   ui.soundBtn.classList.toggle('muted',muted);
   ui.soundBtn.addEventListener('click',()=>{initAudio();muted=!muted;localStorage.setItem('starStrikeMuted',muted?'1':'0');ui.soundBtn.classList.toggle('muted',muted);ui.soundBtn.setAttribute('aria-label',muted?'开启声音':'关闭声音');if(!muted)sound('power');});
