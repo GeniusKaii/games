@@ -1236,7 +1236,7 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     game.canvasW = w;
     game.canvasH = h;
-    game.cell = Math.max(28, Math.floor(Math.min(w / COLS, h / ROWS)));
+    game.cell = Math.max(20, Math.floor(Math.min(w / COLS, h / ROWS)));
     game.cellScale = game.cell / 48;
     game.ox = Math.floor((w - COLS * game.cell) / 2);
     game.oy = Math.floor((h - ROWS * game.cell) / 2);
