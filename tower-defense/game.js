@@ -957,7 +957,8 @@
   /* ================= 输入 ================= */
   function screenPos(e) {
     const rect = canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const src = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
+    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
   }
   function pxToCell(x, y) {
     const c = Math.floor((x - game.ox) / game.cell), r = Math.floor((y - game.oy) / game.cell);
@@ -1229,7 +1230,7 @@
   function resize() {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    const w = Math.max(200, rect.width), h = Math.max(200, rect.height);
+    const w = Math.max(200, rect.width || window.innerWidth), h = Math.max(200, rect.height || window.innerHeight);
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1260,6 +1261,8 @@
   function init() {
     resize();
     window.addEventListener('resize', resize);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', resize);
     window.addEventListener('pointerdown', () => audio.ensure(), { once: true });
     ui.soundBtn.textContent = audio.muted ? '🔇' : '🔊';
     ui.bestRecord.textContent = '最佳纪录：第 ' + game.best.wave + ' 波 · ' + game.best.score + ' 分';
