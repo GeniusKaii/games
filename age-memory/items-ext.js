@@ -13,8 +13,8 @@ export const ITEMS_EXT = [
     d: '夹心饼干，中间一层白', q: '夹心饼干 / 麦丽素' },
   { id: 'tiaotiaotang', t: 'know', dom: 'food', g: 'fd90b', y: 1995, sp: 8, a: [5, 13], h: 0.58, r: 0.14,
     d: '放嘴里会噼里啪啦', q: '跳跳糖' },
-  { id: 'guodong', t: 'know', dom: 'food', g: 'fd90b', y: 1996, sp: 10, a: [4, 12], h: 0.62, r: 0.18,
-    d: '一小杯，用吸的果冻', q: '果冻 / 喜之郎' },
+  { id: 'guodong', t: 'know', dom: 'food', g: 'fd90b', y: 1996, sp: 14, a: [4, 14], h: 0.62, r: 0.18,
+    d: '一小杯，用吸的果冻（90末到00初都很火）', q: '果冻 / 喜之郎' },
   { id: 'pangge', t: 'know', dom: 'food', g: 'fd90c', y: 1998, sp: 10, a: [6, 16], h: 0.52, r: 0.12,
     d: '膨化小零食，好几种形状', q: '虾条 / 锅巴' },
   { id: 'binggan2', t: 'know', dom: 'food', g: 'fd90c', y: 1993, sp: 12, a: [5, 14], h: 0.55, r: 0.16,
@@ -53,8 +53,8 @@ export const ITEMS_EXT = [
     d: '四大天王时代', q: '四大天王 / 港台流行' },
   { id: 'cassette', t: 'know', dom: 'music', g: 'ms90b', y: 1988, sp: 15, a: [12, 35], h: 0.55, r: 0.24,
     d: '录音机、倒带、用铅笔卷', q: '磁带 / 随身听' },
-  { id: 'cd', t: 'know', dom: 'music', g: 'ms90b', y: 1994, sp: 10, a: [14, 32], h: 0.48, r: 0.18,
-    d: '光盘，要小心刮花', q: 'CD / 光盘' },
+  { id: 'cd', t: 'know', dom: 'music', g: 'ms90b', y: 1994, sp: 16, a: [10, 30], h: 0.48, r: 0.18,
+    d: '光盘，要小心刮花（90 末到 2000 初都在用）', q: 'CD / 光盘' },
 
   /* ---------- 2000s：网络 ---------- */
   { id: 'qq', t: 'know', dom: 'net', g: 'nt00a', y: 2000, sp: 20, a: [14, 35], h: 0.85, r: 0.45,
