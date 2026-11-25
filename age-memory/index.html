@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>年代记忆 · 猜你的年龄</title>
+<meta name="description" content="用你还记得的年代物件，猜猜你几岁。">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2316101f'/%3E%3Crect x='13' y='12' width='9' height='40' fill='%23c9a7ff'/%3E%3Cpath d='M22 30 L23 21 L50 12 L50 21 Z' fill='%23c9a7ff'/%3E%3Cpath d='M22 34 L50 43 L50 52 L23 43 Z' fill='%233ddc97'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#16101f">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ 标题页 ============ -->
+<section class="view on" id="v-title">
+  <div class="stage">
+    <div class="badge-k">K</div>
+    <h1 class="big">年代记忆</h1>
+    <p class="sub">用你还记得的东西，猜出你几岁</p>
+
+    <div class="card taped intro">
+      <p class="lead">这游戏只做一件事：</p>
+      <p>问你十几个关于旧年代的问题，看你<strong>记得多少</strong>、<strong>记得多早</strong>，反推出你的出生年。</p>
+      <ul class="rules">
+        <li>一直问到它确定为止，没有固定题数</li>
+        <li>猜的机会只有最后 1 次</li>
+        <li><strong>不知道、记不清，就老实说「不知道」——那样反而更准</strong></li>
+      </ul>
+    </div>
+
+    <button class="btn big-btn" id="btnStart">开始猜我年龄</button>
+    <p class="tiny">纯本地运行 · 不上传任何数据 · 每题都不一样</p>
+  </div>
+</section>
+
+<!-- ============ 答题页 ============ -->
+<section class="view" id="v-quiz">
+  <div class="stage quiz-stage">
+    <div class="prog">
+      <div class="prog-bar"><i id="progFill"></i></div>
+      <div class="prog-txt"><span id="qNo">第 1 题</span><span id="qPct">0%</span></div>
+    </div>
+
+    <div class="card taped qcard" id="qcard">
+      <div class="qkind" id="qKind">年代回忆</div>
+      <h2 class="qtitle" id="qTitle"></h2>
+      <p class="qdesc" id="qDesc"></p>
+      <p class="qask" id="qAsk"></p>
+    </div>
+
+    <div class="opts" id="opts"></div>
+    <button class="btn ghost" id="btnGiveUp">跳过这道</button>
+  </div>
+</section>
+
+<!-- ============ 揭晓页 ============ -->
+<section class="view" id="v-reveal">
+  <div class="stage">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <p class="reveal-lead">我看你的记忆应该是——</p>
+    <div class="stamp-wrap">
+      <div class="age-big"><span id="guessAge">28</span><small>岁</small></div>
+      <div class="stamp" id="stamp">猜</div>
+    </div>
+    <p class="reveal-note">一共问了 <b id="qTotal">0</b> 题</p>
+
+    <div class="ask-real">
+      <p class="ask-t">猜得准吗？</p>
+      <div class="btn-row">
+        <button class="btn" id="btnRight">猜中了</button>
+        <button class="btn ghost" id="btnWrong">没猜中，我来填</button>
+      </div>
+      <div class="age-input" id="ageInput" hidden>
+        <label>你的真实年龄</label>
+        <div class="row-in">
+          <input type="number" id="realAge" min="15" max="55" inputmode="numeric" placeholder="比如 32">
+          <button class="btn" id="btnSubmitAge">确定</button>
+        </div>
+      </div>
+      <button class="btn link" id="btnSkip">跳过，直接看结果</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 结果页 ============ -->
+<section class="view" id="v-result">
+  <div class="stage">
+    <h1 class="big sm">你的年代记忆</h1>
+
+    <div class="card verdict" id="verdict"></div>
+
+    <div class="card strata-card">
+      <h2 class="sec-t">记忆的地层</h2>
+      <p class="sec-d">你在每个年代的东西上，记得有多深</p>
+      <div class="strata" id="strata"></div>
+      <p class="strata-tip" id="strataTip"></p>
+    </div>
+
+    <div class="card" id="keyCard">
+      <h2 class="sec-t">出卖你的那一题</h2>
+      <p class="key-q" id="keyQ"></p>
+      <p class="key-note" id="keyNote"></p>
+    </div>
+
+    <details class="log">
+      <summary>看完整答题记录</summary>
+      <ol id="logList"></ol>
+    </details>
+
+    <div class="btn-row">
+      <button class="btn" id="btnShot">保存成绩图</button>
+      <button class="btn ghost" id="btnAgain">再玩一次</button>
+    </div>
+    <p class="tiny">把图发出去，朋友扫码或点链接就能玩</p>
+  </div>
+</section>
+
+<canvas id="shot" width="1080" height="1440" hidden></canvas>
+
+<script type="module" src="game.js"></script>
+</body>
+</html>
