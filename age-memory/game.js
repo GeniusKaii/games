@@ -7,6 +7,7 @@ import {
   TRAITS, STOP,
 } from './engine.js';
 import { ALL as ITEMS, OPTIONS } from './items.js';
+import { drawQR } from './qr.js';
 
 const $ = id => document.getElementById(id);
 
@@ -374,21 +375,38 @@ function drawShot(real, guess, diff) {
   });
 
   // 底部
-  y = H - 200;
+  y = H - 330;
   ctx.strokeStyle = '#2f2740';
   ctx.beginPath();
   ctx.moveTo(pad, y);
   ctx.lineTo(W - pad, y);
   ctx.stroke();
-  y += 70;
+  y += 46;
+
+  // 二维码放右侧，左边放文案
+  const qrSize = 200;
+  const qrX = W - pad - qrSize;
+  const qrY = y - 6;
+  drawQR(ctx, qrX, qrY, qrSize, '#16101f', '#ffffff');
+
+  // 圆角白框，让二维码看起来像贴纸
+  ctx.strokeStyle = '#3a3048';
+  ctx.lineWidth = 2;
+  roundRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 10);
+  ctx.stroke();
+
+  ctx.fillStyle = '#ded7e9';
+  ctx.font = font(30, '600');
+  ctx.fillText('你也来试试', pad, y + 46);
 
   ctx.fillStyle = '#7a6f8d';
-  ctx.font = font(30, '400');
-  ctx.fillText('你也来试试 → kaii.fun/games/age-memory/', pad, y);
-  y += 56;
-  ctx.fillStyle = '#4a4058';
   ctx.font = font(24, '400');
-  ctx.fillText('一共问了 ' + state.asked.length + ' 题', pad, y);
+  ctx.fillText('微信长按识别二维码', pad, y + 92);
+  ctx.fillText('或者打开 kaii.fun', pad, y + 128);
+
+  ctx.fillStyle = '#4a4058';
+  ctx.font = font(22, '400');
+  ctx.fillText('一共问了 ' + state.asked.length + ' 题', pad, y + 178);
 
   return cv;
 }

@@ -265,7 +265,7 @@ export class Model {
  * 选题：不是固定问卷，每轮挑信息增益最大的
  * ---------------------------------------------------------- */
 export function pickNext(model, pool, asked, opts = {}) {
-  const { coarse = false, pickBoost = 1 } = opts;
+  const { coarse = false, pickBoost = 1, rng = Math.random } = opts;
   const binSize = coarse ? 6 : 1;
 
   const scored = [];
@@ -288,12 +288,21 @@ export function pickNext(model, pool, asked, opts = {}) {
   if (!scored.length) return null;
   scored.sort((a, b) => b.w - a.w);
 
-  // 从前几名里按 w² 加权随机：每次玩题目不完全一样
-  const k = asked.length < 2 ? Math.min(6, scored.length) : Math.min(3, scored.length);
+  // 前两题：优先打散领域，不要每次都从同一批里选
+  if (asked.length < 2) {
+    const usedDoms = new Set(asked.map(q => q.dom));
+    const fresh = scored.filter(x => !usedDoms.has(x.q.dom));
+    if (fresh.length) {
+      return fresh[Math.floor(rng() * fresh.length)].q;
+    }
+  }
+
+  // 从前几名里按 w^1.2 加权随机：不要总选第一名
+  const k = asked.length < 2 ? Math.min(6, scored.length) : Math.min(4, scored.length);
   const topk = scored.slice(0, k);
-  const ws = topk.map(x => Math.pow(Math.max(x.w, 1e-9), 2));
+  const ws = topk.map(x => Math.pow(Math.max(x.w, 1e-9), 1.2));
   const sum = ws.reduce((a, b) => a + b, 0);
-  let r = Math.random() * sum;
+  let r = rng() * sum;
   for (let i = 0; i < topk.length; i++) {
     r -= ws[i];
     if (r <= 0) return topk[i].q;
