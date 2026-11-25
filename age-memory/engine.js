@@ -29,6 +29,27 @@ function build4(pHit, pSome, pName) {
   return [hit, some - hit, name - some, 1 - name];
 }
 
+/** 归一化：和不为正时退回均匀分布 */
+function norm(arr) {
+  let s = 0;
+  for (const v of arr) s += v;
+  if (!(s > 0)) return arr.map(() => 1 / arr.length);
+  return arr.map(v => v / s);
+}
+
+/** 混入均匀噪声：答错/心情不好时不让某档概率归零，避免贝叶斯支路被全灭 */
+function mixNoise(p, amount) {
+  const u = 1 / p.length;
+  return norm(p.map(v => v * (1 - amount) + amount * u));
+}
+
+/**
+ * 似然缓存：每道题 × 每种人型的 4 档答案分布只跟「题 + 人型 + 年龄」有关，
+ * 与当前后验无关。题只有 127 道、人型 16 种，完全可以预计算一次。
+ * key = q.id + ':' + typeIndex
+ */
+const likelihoodCache = new Map();
+
 /* ------------------------------------------------------------
  * 人格维度：不是每人一个类型，而是「属性的组合」。
  * 2^4 = 16 种人型，每个都有独立的年龄概率分布，同时更新。
@@ -67,9 +88,12 @@ function agePrior(a) {
  * 给一道题和某个年龄，算出这个年龄的人选四个答案各自的概率。
  * ---------------------------------------------------------- */
 export function knowProbs(q, age, tr) {
+  // quiz 题走独立的「对错」模型（3 档：对/错/不知道）
+  if (q.t === 'quiz') return quizProbs(q, age);
+
   const B = NOW - age - 0.5;            // 出生年（取中点）
   const y0 = q.y;
-  const y1 = q.y + q.sp;
+  const y1 = q.y + (q.sp || 1);
   const a0 = q.a[0];
   const a1 = q.a[1];
 
@@ -77,54 +101,90 @@ export function knowProbs(q, age, tr) {
   const ageEnd = y1 - B;                // 流行结束时他几岁
 
   // 「当时偏大」与「当时太小/未出生」的程度
-  let O = sig((ageMid - (a1 + 0.5)) / 1.4);
-  let Y = sig(((a0 - 0.5) - ageEnd) / 1.4);
-  const s = O + Y;
-  if (s > 1) { O /= s; Y /= s; }
+  const O = sig((ageMid - (a1 + 0.5)) / 1.0);
+  const Y = sig(((a0 - 0.5) - ageEnd) / 1.0);
+  const oy = O + Y;
 
-  // 流行期内真正落在目标年龄的份额
+  // 流行期内真正落在目标年龄的份额：指数饱和（原版 D = 1 - exp(-acc/0.9)）
+  const steps = Math.max(2, Math.ceil((y1 - y0) / 0.25));
+  const dt = (y1 - y0) / steps;
   let acc = 0;
-  let steps = 0;
-  for (let yr = y0; yr <= y1 + 1e-9; yr += 0.5) {
-    acc += win(yr - B, a0, a1, 1.1);
-    steps++;
+  for (let k = 0; k <= steps; k++) {
+    const t = y0 + k * dt;
+    acc += win(t - B, a0, a1, 0.7) * (k === 0 || k === steps ? dt / 2 : dt);
   }
-  const D = steps ? acc / steps : 0;
+  const D = 1 - Math.exp(-acc / 0.9);
 
-  // ---- 命中态 ----
-  let h = q.h ?? 0.6;
-  if (q.dom === 'game') h *= 0.30 + 0.70 * (tr.gamer ? 1 : 0);
-  if (q.dom === 'fem') h *= 0.40 + 0.60 * (tr.fem ? 1 : 0);
-  if (q.dom === 'net') h *= 0.45 + 0.55 * (tr.urban ? 1 : 0);
-  h = clamp01(0.5 * (clamp01(h) + 0.02));
+  const wIn = D;
+  const wOld = (1 - D) * (oy > 1e-9 ? O / oy : 0.5);
+  const wYoung = (1 - D) * (oy > 1e-9 ? Y / oy : 0.5);
 
-  const pIn = build4(h, h + (1 - h) * 0.55, h + (1 - h) * 0.82);
+  // 人格修正：retro/gamer/urban
+  const fh = tr.retro ? 1.15 : 1;          // 考古型更可能「沉迷」
+  const fa = tr.retro ? 1.2 : 1;           // 更可能「知道」
+  let h = Math.min(0.95, (q.h ?? 0.6) * fh);
+  if (q.dom === 'game' && !tr.gamer) h *= 0.3;
+  if (q.dom === 'net' && !tr.urban) h *= 0.6;
 
-  // ---- 偏大态：知道名字，但没经历 ----
+  // aw：当时该年龄的人里，知道名字以上的比例（默认 94%）
+  const aw = Math.max(h + 0.02, Math.min(0.99, 0.94 * fa));
+  const pin = [h, (aw - h) * 0.72, (aw - h) * 0.28, 1 - aw];
+
+  // ---- 偏大态：三档独立衰减（ho/ko/no，45/70 年）----
   const gap = Math.max(0, ageMid - a1);
-  const ho = 0.16 * Math.exp(-gap / 26);   // 「有过」的比例
-  const ko = 0.52 * Math.exp(-gap / 48);   // 「只听过」的比例
-  const pOld = build4(ho * 0.10, ho, ko);
+  const ho = Math.min(0.9, 0.04 * fh);
+  const ko = Math.max(ho, Math.min(0.95, 0.35 * fa * Math.exp(-gap / 45)));
+  const no = Math.max(ko, Math.min(0.98, 0.85 * Math.exp(-gap / 70)));
+  let pold = [ho, ko - ho, no - ko, 1 - no];
+
+  // parent 修正：儿童向内容，当时 27–47 岁的人陪孩子知道
+  if (a1 <= 13 && tr.parent) {
+    const wp = win(ageMid, 27, 47, 2.5) * 0.45;
+    if (wp > 1e-3) {
+      const hp = Math.max(ho, Math.min(0.9, 0.12 * fh));
+      const kp = Math.max(ko, hp, Math.min(0.85, 0.35 * 2.2 * fa));
+      const np = Math.max(no, kp, Math.min(0.97, 0.95));
+      const ppar = [hp, kp - hp, np - kp, 1 - np];
+      pold = pold.map((v, r) => v * (1 - wp) + ppar[r] * wp);
+    }
+  }
 
   // ---- 幼小态：当时还没出生或太小，后来才认识 ----
-  const retroBoost = 1 + 1.7 * (tr.retro ? 1 : 0) * 0.35;
-  const yrs = Math.max(0, a0 - ageEnd);
-  const r = Math.min(0.92, (q.r ?? 0.22) * retroBoost * Math.exp(-yrs / (q.rd ?? 10)));
-  const pYoung = build4(0.005, r * 0.28, r);
-
-  // ---- 混合 ----
-  const wIn = D;
-  const wOld = (1 - D) * (O / (O + Y || 1));
-  const wYoung = (1 - D) * (Y / (O + Y || 1));
+  const yrs = Math.max(0, (a0 - 0.5) - ageEnd);
+  let R = Math.min(0.97, (q.r ?? 0.3) * fa * Math.exp(-yrs / (q.rd || 12)));
+  let hy = Math.min(0.3, (q.hy || 0.01) * fh * Math.exp(-yrs / 15));
+  let rk = 0.35;   // 后来认识的人里「知道」的比例
+  if (tr.retro) {
+    R = Math.max(R, Math.min(0.85, (0.3 + 1.6 * (q.r ?? 0.3)) * Math.exp(-yrs / ((q.rd || 12) * 2.5))));
+    hy = Math.max(hy, 0.05 * Math.exp(-yrs / 30));
+    rk = 0.5;
+  }
+  const pyoung = [hy, R * rk, R * (1 - rk), Math.max(0, 1 - hy - R)];
 
   const out = [0, 0, 0, 0];
-  for (let i = 0; i < 4; i++) {
-    out[i] = wIn * pIn[i] + wOld * pOld[i] + wYoung * pYoung[i];
-  }
-  // 防止某档概率为 0 导致贝叶斯把支路全灭
-  for (let i = 0; i < 4; i++) out[i] = Math.max(out[i], 1e-4);
-  const tot = out.reduce((x, y) => x + y, 0);
-  return out.map(v => v / tot);
+  for (let i = 0; i < 4; i++) out[i] = wIn * pin[i] + wOld * pold[i] + wYoung * pyoung[i];
+  return mixNoise(out, 0.08);
+}
+
+/**
+ * quiz 题：四选一知识题，正确答案 q.c。
+ * 原版是 3 档（对/错/不知道），但我们的界面是四选一，所以返回 4 档：
+ * 每个错误选项概率相同，正确答案概率高。
+ */
+function quizProbs(q, age) {
+  const B = NOW - age - 0.5;
+  const ageMid = (q.y + q.y + (q.sp || 1)) / 2 - B;
+  const a0 = q.a[0];
+  const a1 = q.a[1];
+
+  // 命中该年龄段中心的程度
+  const inRange = win(ageMid, a0, a1, 1.5);
+  // 答对概率：命中年龄段时高，偏离时低
+  const pCorrect = 0.25 + 0.60 * inRange;
+  const wrong = (1 - pCorrect) / 3;
+  const out = new Array(4).fill(wrong);
+  out[q.c] = pCorrect;
+  return mixNoise(out, 0.04);
 }
 
 /* ------------------------------------------------------------
@@ -158,12 +218,20 @@ export class Model {
     return m;
   }
 
-  /** 某道题的似然矩阵 [type][age][answer] */
+  /** 某道题的似然矩阵 [type][age][answer]（带缓存） */
   likelihood(q) {
-    return this.types.map(t => AGES.map(a => knowProbs(q, a, t.traits)));
+    return this.types.map((t, ti) => {
+      const key = q.id + ':' + ti;
+      let cached = likelihoodCache.get(key);
+      if (!cached) {
+        cached = AGES.map(a => knowProbs(q, a, t.traits));
+        likelihoodCache.set(key, cached);
+      }
+      return cached;
+    });
   }
 
-  /** 用某个答案更新后验 */
+  /** 用某个答案更新后验。temper：1 时严格按似然，小于 1 时弱化单题影响（防误点） */
   answer(q, r, temper = 0.85) {
     const L = this.likelihood(q);
     let totalAns = 0;
