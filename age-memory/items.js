@@ -1,4 +1,6 @@
 import { ITEMS_EXT } from './items-ext.js';
+import { ITEMS_EXT2 } from './items-ext2.js';
+import { ITEMS_EXT3 } from './items-ext3.js';
 
 /* ============================================================
  * 题库：中国大陆 1980s–2020s 的流行记忆
@@ -46,8 +48,8 @@ export const ITEMS = [
     d: '村里/厂里挂块白布放电影', q: '露天电影' },
   { id: 'shengbo', t: 'know', dom: 'life', g: 'life80', y: 1985, sp: 15, a: [10, 30], h: 0.40, r: 0.22,
     d: '一家人围着听评书和广播剧', q: '收音机 / 听评书' },
-  { id: 'geli', t: 'pick', dom: 'music', g: 'music90', y: 1990, sp: 12, a: [12, 28], h: 0.55, r: 0.30,
-    d: '港台歌手，卡带时代', q: '你最早买/听过的流行歌手专辑是什么年代的？' },
+  { id: 'geli', t: 'know', dom: 'music', g: 'music90', y: 1990, sp: 12, a: [14, 30], h: 0.50, r: 0.28,
+    d: '四大天王、张国荣、Beyond，一盘磁带反复听', q: '港台流行音乐（磁带 / 卡带时代）' },
   { id: 'iqiyi90', t: 'know', dom: 'tv', g: 'tv90', y: 1993, sp: 8, a: [6, 14], h: 0.58, r: 0.22,
     d: '真人演的儿童剧，大头儿子那种感觉', q: '《西游记》以外的儿童电视剧' },
 
@@ -78,8 +80,8 @@ export const ITEMS = [
     d: '论坛、博客、贴吧', q: 'BBS / 贴吧 / 博客' },
   { id: 'youxiwang', t: 'know', dom: 'game', g: 'game00', y: 2000, sp: 10, a: [8, 16], h: 0.52, r: 0.16,
     d: '掌机、GBA、口袋妖怪', q: 'GameBoy / GBA' },
-  { id: 'shuma', t: 'pick', dom: 'tech', g: 'tech00', y: 2000, sp: 12, a: [12, 28], h: 0.50, r: 0.20,
-    d: '第一部手机、第一个 MP3、第一台电脑', q: '你买第一台数码设备（手机/MP3/电脑）是什么年代？' },
+  { id: 'shuma', t: 'know', dom: 'tech', g: 'tech00', y: 2003, sp: 8, a: [12, 26], h: 0.62, r: 0.28,
+    d: '第一部手机、第一个 MP3、第一台自己的电脑', q: '个人数码设备（手机 / MP3 / 电脑）普及的年代' },
 
   /* ---------------- 2010s ---------------- */
   { id: 'smart', t: 'know', dom: 'tech', g: 'tech10', y: 2010, sp: 12, a: [16, 40], h: 0.80, r: 0.35,
@@ -104,8 +106,8 @@ export const ITEMS = [
     d: '手机下单，半小时送到', q: '外卖平台' },
   { id: 'xiaoshuo', t: 'know', dom: 'net', g: 'net10', y: 2010, sp: 10, a: [14, 30], h: 0.52, r: 0.16,
     d: '玄幻、修真、起点', q: '网络小说' },
-  { id: 'shouji10', t: 'pick', dom: 'tech', g: 'tech10', y: 2010, sp: 12, a: [14, 40], h: 0.55, r: 0.20,
-    d: '从哪一款开始用上触屏', q: '你第一部触屏手机是什么年代？' },
+  { id: 'shouji10', t: 'know', dom: 'tech', g: 'tech10', y: 2010, sp: 10, a: [16, 38], h: 0.72, r: 0.32,
+    d: '从按键机换触屏，全民智能手机', q: '触屏智能手机普及' },
 
   /* ---------------- 2020s ---------------- */
   { id: 'yuanshen', t: 'know', dom: 'game', g: 'game20', y: 2020, sp: 6, a: [12, 28], h: 0.52, r: 0.10,
@@ -133,10 +135,10 @@ export const ITEMS = [
 
 /** 题型 → 四档答案文案 */
 export const OPTIONS = {
-  know: ['沉迷过 / 非常熟', '用过 / 看过一些', '只听过名字', '不知道'],
+  know: ['很熟 / 当时沉浸其中', '知道 / 接触过', '只听过名字', '不知道'],
   pick: ['我还没出生', '小时候见过', '正当年', '已经不太用了'],
   quiz: null, // quiz 用题目的 opts
 };
 
-/* 题库扩充：与 items-ext.js 合并 */
-export const ALL = ITEMS.concat(ITEMS_EXT);
+/* 题库扩充：四批合并 */
+export const ALL = ITEMS.concat(ITEMS_EXT).concat(ITEMS_EXT2).concat(ITEMS_EXT3);

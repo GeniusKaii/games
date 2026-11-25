@@ -77,10 +77,16 @@ export function makeTypes() {
   return out;
 }
 
-/** 年龄本身的先验：中间年龄段略高 */
+/** 年龄先验：朋友集中在 20–40 岁，这个区间内尽量平坦，让题目信息主导推断；
+ *  区间外平滑下降，作为兜底（长辈/小孩误入时不至于猜得离谱）。 */
 function agePrior(a) {
-  const mid = 32;
-  return Math.exp(-Math.pow((a - mid) / 22, 2)) * 0.6 + 0.4;
+  if (a >= 20 && a <= 40) return 1.0;
+  if (a < 20) {
+    // 15–19 从 0.45 平滑升到 1.0
+    return 0.45 + 0.55 * (a - 15) / 5;
+  }
+  // 41–55 从 1.0 平滑降到 0.3
+  return 1.0 - 0.7 * (a - 40) / 15;
 }
 
 /* ------------------------------------------------------------
@@ -132,7 +138,7 @@ export function knowProbs(q, age, tr) {
 
   // ---- 偏大态：三档独立衰减（ho/ko/no，45/70 年）----
   const gap = Math.max(0, ageMid - a1);
-  const ho = Math.min(0.9, 0.04 * fh);
+  const ho = Math.min(0.9, 0.10 * fh);      // 偏大的人「沉迷过」略提，弱化「知道旧=年纪大」
   const ko = Math.max(ho, Math.min(0.95, 0.35 * fa * Math.exp(-gap / 45)));
   const no = Math.max(ko, Math.min(0.98, 0.85 * Math.exp(-gap / 70)));
   let pold = [ho, ko - ho, no - ko, 1 - no];
@@ -151,7 +157,8 @@ export function knowProbs(q, age, tr) {
 
   // ---- 幼小态：当时还没出生或太小，后来才认识 ----
   const yrs = Math.max(0, (a0 - 0.5) - ageEnd);
-  let R = Math.min(0.97, (q.r ?? 0.3) * fa * Math.exp(-yrs / (q.rd || 12)));
+  // r 基准提高：年轻人对旧东西「后来才知道」的概率更高，缓解「知道旧=年纪大」的偏差
+  let R = Math.min(0.97, (q.r ?? 0.30) * 1.3 * fa * Math.exp(-yrs / (q.rd || 12)));
   let hy = Math.min(0.3, (q.hy || 0.01) * fh * Math.exp(-yrs / 15));
   let rk = 0.35;   // 后来认识的人里「知道」的比例
   if (tr.retro) {
