@@ -128,10 +128,13 @@ function submitRealAge(real) {
 function renderResult(real, guess, diff) {
   const v = $('verdict');
   let cls, line;
+  // diff = real - guess
+  //   diff > 0：猜小了（把你说年轻了）
+  //   diff < 0：猜大了（把你说老了）
   if (diff === 0) { cls = 'zero'; line = '正正好，一分不差。'; }
   else if (diff === 1) { cls = 'young'; line = '只差 1 岁。'; }
-  else if (diff < 0) { cls = 'young'; line = '把你猜年轻了 ' + Math.abs(diff) + ' 岁。'; }
-  else { cls = 'old'; line = '把你猜老了 ' + diff + ' 岁。'; }
+  else if (diff > 0) { cls = 'young'; line = '把你猜年轻了 ' + diff + ' 岁。'; }
+  else { cls = 'old'; line = '把你猜老了 ' + Math.abs(diff) + ' 岁。'; }
 
   v.innerHTML =
     '<div class="v-age">猜 ' + guess + ' 岁 · 实际 ' + real + ' 岁</div>' +
@@ -330,11 +333,11 @@ function drawShot(real, guess, diff) {
   ctx.fillText('岁', pad + gw + 16, y);
   y += 80;
 
-  // 差异
+  // 差异（成绩图里同样要方向正确：diff = real - guess）
   let diffTxt, diffColor;
   if (diff === 0) { diffTxt = '一分不差，正正好'; diffColor = '#6ff0b8'; }
-  else if (diff < 0) { diffTxt = '把我猜年轻了 ' + Math.abs(diff) + ' 岁'; diffColor = '#3ddc97'; }
-  else { diffTxt = '把我猜老了 ' + diff + ' 岁'; diffColor = '#e8a04c'; }
+  else if (diff > 0) { diffTxt = '把我猜年轻了 ' + diff + ' 岁'; diffColor = '#3ddc97'; }
+  else { diffTxt = '把我猜老了 ' + Math.abs(diff) + ' 岁'; diffColor = '#e8a04c'; }
   ctx.fillStyle = diffColor;
   ctx.font = font(38, '600');
   ctx.fillText(diffTxt, pad, y);
