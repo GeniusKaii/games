@@ -1,6 +1,8 @@
 import { ITEMS_EXT } from './items-ext.js';
 import { ITEMS_EXT2 } from './items-ext2.js';
 import { ITEMS_EXT3 } from './items-ext3.js';
+import { ITEMS_EXT4 } from './items-ext4.js';
+import { ITEMS_EXT5 } from './items-ext5.js';
 
 /* ============================================================
  * 题库：中国大陆 1980s–2020s 的流行记忆
@@ -141,4 +143,4 @@ export const OPTIONS = {
 };
 
 /* 题库扩充：四批合并 */
-export const ALL = ITEMS.concat(ITEMS_EXT).concat(ITEMS_EXT2).concat(ITEMS_EXT3);
+export const ALL = ITEMS.concat(ITEMS_EXT).concat(ITEMS_EXT2).concat(ITEMS_EXT3).concat(ITEMS_EXT4).concat(ITEMS_EXT5);
