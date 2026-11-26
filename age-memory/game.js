@@ -71,7 +71,7 @@ function renderQuestion(q) {
   $('qKind').textContent = kindMap[q.t] || '年代回忆';
   $('qTitle').textContent = q.q || '';
   $('qDesc').textContent = q.d || '';
-  $('qAsk').textContent = '它流行的时候，你处在什么位置？';
+  $('qAsk').textContent = '你记得它吗？';
 
   let labels;
   if (q.t === 'quiz' && q.opts) {
@@ -82,7 +82,7 @@ function renderQuestion(q) {
     $('qAsk').textContent = '它流行的时候，你在什么状态？';
   } else {
     labels = OPTIONS.know;
-    $('qAsk').textContent = '它流行的时候，你处在什么位置？';
+    $('qAsk').textContent = '你记得它吗？';
   }
 
   const box = $('opts');
