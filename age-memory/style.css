@@ -184,6 +184,36 @@ body::after {
 .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
 .btn-row .btn { flex: 1 1 140px; }
 
+/* ---------- 分享成绩图 ---------- */
+.share-card {
+  margin: 28px 0 0;
+  padding: 18px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-soft);
+  text-align: center;
+}
+.share-card[hidden] { display: none; }
+
+.share-tip {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: var(--green);
+  letter-spacing: .02em;
+}
+
+.share-card img {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  border-radius: 10px;
+  /* 长按保存的关键：避免浏览器把图当链接/禁止选中 */
+  -webkit-touch-callout: default;
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
 .tiny {
   text-align: center;
   font-size: 12px;

@@ -144,6 +144,7 @@ function renderResult(real, guess, diff) {
   renderStrata();
   renderKey();
   renderLog();
+  renderShareCard();
 }
 
 /* ---------------- 没填真实年龄时的结果 ---------------- */
@@ -156,6 +157,7 @@ function renderResultNoReal() {
   renderStrata();
   renderKey();
   renderLog();
+  renderShareCard();
 }
 
 /* ---------------- 记忆的地层 ---------------- */
@@ -378,38 +380,38 @@ function drawShot(real, guess, diff) {
   });
 
   // 底部
-  y = H - 330;
+  y = H - 380;
   ctx.strokeStyle = '#2f2740';
   ctx.beginPath();
   ctx.moveTo(pad, y);
   ctx.lineTo(W - pad, y);
   ctx.stroke();
-  y += 46;
+  y += 40;
 
-  // 二维码放右侧，左边放文案
-  const qrSize = 200;
+  // 二维码：尽量大，保证手机长按/扫码能识别
+  const qrSize = 300;
   const qrX = W - pad - qrSize;
-  const qrY = y - 6;
+  const qrY = y;
   drawQR(ctx, qrX, qrY, qrSize, '#16101f', '#ffffff');
 
-  // 圆角白框，让二维码看起来像贴纸
+  // 白底圆角框，让二维码像贴纸
   ctx.strokeStyle = '#3a3048';
   ctx.lineWidth = 2;
-  roundRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 10);
+  roundRect(ctx, qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 12);
   ctx.stroke();
 
   ctx.fillStyle = '#ded7e9';
-  ctx.font = font(30, '600');
-  ctx.fillText('你也来试试', pad, y + 46);
+  ctx.font = font(34, '700');
+  ctx.fillText('你也来试试', pad, y + 56);
 
   ctx.fillStyle = '#7a6f8d';
-  ctx.font = font(24, '400');
-  ctx.fillText('微信长按识别二维码', pad, y + 92);
-  ctx.fillText('或者打开 kaii.fun', pad, y + 128);
+  ctx.font = font(25, '400');
+  ctx.fillText('微信长按识别二维码', pad, y + 108);
+  ctx.fillText('或打开 kaii.fun', pad, y + 148);
 
   ctx.fillStyle = '#4a4058';
   ctx.font = font(22, '400');
-  ctx.fillText('一共问了 ' + state.asked.length + ' 题', pad, y + 178);
+  ctx.fillText('一共问了 ' + state.asked.length + ' 题', pad, y + 215);
 
   return cv;
 }
@@ -440,10 +442,17 @@ function computeDecades() {
 function saveShot() {
   const real = state.realAge || state.guess;
   const cv = drawShot(real, state.guess, real - state.guess);
-  const a = document.createElement('a');
-  a.download = '年代记忆-我' + real + '岁.png';
-  a.href = cv.toDataURL('image/png');
-  a.click();
+  const img = $('shareImg');
+  img.src = cv.toDataURL('image/png');
+  $('shareCard').hidden = false;
+}
+
+/* 结果页出现时就把成绩图渲染好，用户直接长按保存 */
+function renderShareCard() {
+  const real = state.realAge || state.guess;
+  const cv = drawShot(real, state.guess, real - state.guess);
+  $('shareImg').src = cv.toDataURL('image/png');
+  $('shareCard').hidden = false;
 }
 
 /* ============================================================
@@ -489,10 +498,9 @@ $('btnSkip').addEventListener('click', () => {
 });
 
 $('btnAgain').addEventListener('click', () => {
+  $('shareCard').hidden = true;
   start();
 });
-
-$('btnShot').addEventListener('click', saveShot);
 
 /* ============================================================
  * 自动演示：?demo=quiz 停在答题页，?demo=result 直接跑到结果页

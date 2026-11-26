@@ -107,15 +107,18 @@
       <ol id="logList"></ol>
     </details>
 
-    <div class="btn-row">
-      <button class="btn" id="btnShot">保存成绩图</button>
-      <button class="btn ghost" id="btnAgain">再玩一次</button>
+    <div class="share-card" id="shareCard">
+      <p class="share-tip">长按下面这张图保存，转发给朋友</p>
+      <img id="shareImg" alt="我的成绩，长按保存转发">
     </div>
-    <p class="tiny">把图发出去，朋友扫码或点链接就能玩</p>
+
+    <div class="btn-row">
+      <button class="btn" id="btnAgain">再玩一次</button>
+    </div>
   </div>
 </section>
 
-<canvas id="shot" width="1080" height="1580" hidden></canvas>
+<canvas id="shot" width="1080" height="1640" hidden></canvas>
 
 <script type="module" src="game.js"></script>
 </body>
